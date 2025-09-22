@@ -131,21 +131,6 @@ export default function Professors() {
                 </p>
               </div>
 
-              {/* Contact */}
-              {professor.email && (
-                <div className="pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    data-testid={`professor-${professor.id}-email`}
-                    onClick={() => window.open(`mailto:${professor.email}`, '_blank')}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contato
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}

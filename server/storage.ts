@@ -92,20 +92,17 @@ export class MemStorage implements IStorage {
       {
         name: "Gabriel Eduardo",
         specialty: "Back-end & APIs",
-        expertise: ["Django", "REST APIs", "PostgreSQL", "Arquitetura de Software"],
-        email: "gabriel.eduardo@senai.br"
+        expertise: ["Django", "REST APIs", "PostgreSQL", "Arquitetura de Software", "Node.js", "Express", "Python", "FastAPI", "Docker", "AWS", "CI/CD", "Testing", "Security", "Microservices", "GraphQL", "Redis", "MongoDB"]
       },
       {
         name: "Guilherme Franco", 
         specialty: "Front-end & UI/UX",
-        expertise: ["React", "JavaScript", "CSS", "Design System", "Prototipação"],
-        email: "guilherme.franco@senai.br"
+        expertise: ["React", "JavaScript", "CSS", "Design System", "Prototipação", "TypeScript", "Vue.js", "Angular", "Figma", "Adobe XD", "SASS/SCSS", "Tailwind CSS", "Webpack", "Vite", "Testing", "Accessibility", "Mobile First", "PWA", "Animation"]
       },
       {
         name: "Silvano",
         specialty: "Banco de Dados & Arquitetura",
-        expertise: ["PostgreSQL", "Modelagem de Dados", "Performance", "Arquitetura"],
-        email: "silvano@senai.br"
+        expertise: ["PostgreSQL", "Modelagem de Dados", "Performance", "Arquitetura", "MySQL", "MongoDB", "Redis", "Data Analytics", "ETL", "Business Intelligence", "Cloud Architecture", "Scalability", "Database Security", "Backup & Recovery", "Data Migration", "Query Optimization", "NoSQL"]
       }
     ];
 

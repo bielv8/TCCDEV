@@ -1,15 +1,19 @@
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Calendar, Clock, Users } from "lucide-react";
 import { type Project, type WeeklySchedule } from "@shared/schema";
 import { formatDate } from "@/lib/date-utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProjectDetail() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -18,6 +22,31 @@ export default function ProjectDetail() {
   const { data: schedule = [], isLoading: scheduleLoading } = useQuery<WeeklySchedule[]>({
     queryKey: ["/api/projects", id, "schedule"],
   });
+
+  const updateScheduleStatus = useMutation({
+    mutationFn: async ({ scheduleId, status }: { scheduleId: string; status: 'completed' | 'pending' | 'current' }) => {
+      return apiRequest('PATCH', `/api/schedule/${scheduleId}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "schedule"] });
+      toast({
+        title: "Status atualizado",
+        description: "O status da semana foi atualizado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da semana.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleWeekStatus = (scheduleId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+    updateScheduleStatus.mutate({ scheduleId, status: newStatus });
+  };
 
   if (projectLoading || scheduleLoading) {
     return (
@@ -161,17 +190,28 @@ export default function ProjectDetail() {
                   <h4 className="font-medium" data-testid={`week-${week.weekNumber}-title`}>
                     Semana {week.weekNumber} - {week.title}
                   </h4>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <span className="text-sm text-muted-foreground" data-testid={`week-${week.weekNumber}-dates`}>
                       {formatDate(week.startDate)} - {formatDate(week.endDate)}
                     </span>
-                    <Badge 
-                      className={`week-status ${week.status}`}
-                      data-testid={`week-${week.weekNumber}-status`}
-                    >
-                      {week.status === 'completed' ? 'Concluída' : 
-                       week.status === 'current' ? 'Em Andamento' : 'Pendente'}
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        className={`week-status ${week.status}`}
+                        data-testid={`week-${week.weekNumber}-status`}
+                      >
+                        {week.status === 'completed' ? 'Concluída' : 
+                         week.status === 'current' ? 'Em Andamento' : 'Pendente'}
+                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">Concluída:</span>
+                        <Switch
+                          checked={week.status === 'completed'}
+                          onCheckedChange={() => toggleWeekStatus(week.id, week.status || 'pending')}
+                          disabled={updateScheduleStatus.isPending}
+                          data-testid={`week-${week.weekNumber}-toggle`}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 

@@ -10,7 +10,14 @@ export default function Schedule() {
     queryKey: ["/api/projects"],
   });
 
-  if (projectsLoading) {
+  // Fetch schedule data for the first project (or you could make this configurable)
+  const firstProjectId = projects[0]?.id;
+  const { data: schedule = [], isLoading: scheduleLoading } = useQuery<WeeklySchedule[]>({
+    queryKey: ["/api/projects", firstProjectId, "schedule"],
+    enabled: !!firstProjectId,
+  });
+
+  if (projectsLoading || scheduleLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">
@@ -25,11 +32,12 @@ export default function Schedule() {
     );
   }
 
-  // Calculate overall schedule metrics
-  const totalWeeks = 11;
-  const currentWeek = 2; // Based on the current date (simulated)
-  const completedWeeks = 1;
-  const progressPercentage = Math.round((currentWeek / totalWeeks) * 100);
+  // Calculate schedule metrics from real data
+  const totalWeeks = schedule.length || 11;
+  const completedWeeks = schedule.filter(week => week.status === 'completed').length;
+  const currentWeekData = schedule.find(week => week.status === 'current');
+  const currentWeek = currentWeekData?.weekNumber || 1;
+  const progressPercentage = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
 
   return (
     <div className="p-6" data-testid="schedule-container">
@@ -106,18 +114,11 @@ export default function Schedule() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6" data-testid="weekly-timeline">
-            {Array.from({ length: totalWeeks }, (_, index) => {
-              const weekNumber = index + 1;
-              const startDate = new Date('2025-09-23');
-              startDate.setDate(startDate.getDate() + index * 7);
-              const endDate = new Date(startDate);
-              endDate.setDate(endDate.getDate() + 6);
-              
-              const status = weekNumber < currentWeek ? 'completed' : 
-                           weekNumber === currentWeek ? 'current' : 'pending';
+            {schedule.map((week) => {
+              const status = week.status || 'pending';
 
               return (
-                <div key={weekNumber} className="timeline-item pl-10" data-testid={`timeline-week-${weekNumber}`}>
+                <div key={week.id} className="timeline-item pl-10" data-testid={`timeline-week-${week.weekNumber}`}>
                   <div className="absolute left-3 w-4 h-4 rounded-full border-2 border-white shadow-md z-10"
                        style={{
                          backgroundColor: status === 'completed' ? 'hsl(158, 64%, 52%)' :
@@ -128,16 +129,16 @@ export default function Schedule() {
                   
                   <div className="bg-card rounded-lg border p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold" data-testid={`week-${weekNumber}-title`}>
-                        Semana {weekNumber} - {getWeekTitle(weekNumber)}
+                      <h3 className="font-semibold" data-testid={`week-${week.weekNumber}-title`}>
+                        Semana {week.weekNumber} - {week.title}
                       </h3>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground" data-testid={`week-${weekNumber}-dates`}>
-                          {formatDate(startDate)} - {formatDate(endDate)}
+                        <span className="text-sm text-muted-foreground" data-testid={`week-${week.weekNumber}-dates`}>
+                          {formatDate(week.startDate)} - {formatDate(week.endDate)}
                         </span>
                         <Badge 
                           className={`week-status ${status}`}
-                          data-testid={`week-${weekNumber}-status`}
+                          data-testid={`week-${week.weekNumber}-status`}
                         >
                           {status === 'completed' ? 'Concluída' : 
                            status === 'current' ? 'Em Andamento' : 'Pendente'}
@@ -145,12 +146,17 @@ export default function Schedule() {
                       </div>
                     </div>
                     
-                    <div className="text-sm text-muted-foreground mb-2" data-testid={`week-${weekNumber}-description`}>
-                      {getWeekDescription(weekNumber)}
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-1">Tarefas:</h5>
+                      <ul className="text-sm text-muted-foreground space-y-1" data-testid={`week-${week.weekNumber}-tasks`}>
+                        {(week.tasks as string[]).map((task, index) => (
+                          <li key={index}>• {task}</li>
+                        ))}
+                      </ul>
                     </div>
                     
-                    <div className="bg-muted/50 px-3 py-2 rounded text-sm" data-testid={`week-${weekNumber}-deliverable`}>
-                      <strong>Entregável:</strong> {getWeekDeliverable(weekNumber)}
+                    <div className="bg-muted/50 px-3 py-2 rounded text-sm" data-testid={`week-${week.weekNumber}-deliverable`}>
+                      <strong>Entregável:</strong> {week.deliverable}
                     </div>
                   </div>
                 </div>
@@ -163,53 +169,3 @@ export default function Schedule() {
   );
 }
 
-function getWeekTitle(weekNumber: number): string {
-  const titles = [
-    "Planejamento Inicial",
-    "Documentação Técnica",
-    "Configuração e Models",
-    "Autenticação e Usuários",
-    "Funcionalidades Core",
-    "Interface e UX",
-    "Funcionalidades Avançadas",
-    "API e Integração",
-    "Testes e Qualidade",
-    "Documentação Final",
-    "Apresentação Final"
-  ];
-  return titles[weekNumber - 1] || "Semana";
-}
-
-function getWeekDescription(weekNumber: number): string {
-  const descriptions = [
-    "Escolha do tema, análise de requisitos e prototipação inicial",
-    "Elaboração do DER, casos de uso e documentação técnica",
-    "Setup do ambiente Django e criação dos models principais",
-    "Implementação do sistema de autenticação e perfis de usuário",
-    "Desenvolvimento das funcionalidades principais do sistema",
-    "Criação da interface responsiva e melhorias de UX",
-    "Implementação de recursos avançados específicos do projeto",
-    "Desenvolvimento da API REST e integração com frontend",
-    "Testes automatizados, correção de bugs e otimizações",
-    "Finalização da documentação e preparação da apresentação",
-    "Apresentação final e defesa do projeto"
-  ];
-  return descriptions[weekNumber - 1] || "Atividades da semana";
-}
-
-function getWeekDeliverable(weekNumber: number): string {
-  const deliverables = [
-    "Protótipo navegável e documentação inicial",
-    "Documentação técnica completa",
-    "Base do sistema funcionando",
-    "Sistema de usuários completo",
-    "Funcionalidades principais implementadas",
-    "Interface completa e responsiva",
-    "Recursos avançados implementados",
-    "API REST documentada e funcional",
-    "Sistema testado e refinado",
-    "Documentação completa e apresentação",
-    "Apresentação e defesa do projeto"
-  ];
-  return deliverables[weekNumber - 1] || "Entregável da semana";
-}
