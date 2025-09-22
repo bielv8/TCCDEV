@@ -1,4 +1,4 @@
-import { type Project, type InsertProject, type WeeklySchedule, type InsertWeeklySchedule, type Professor, type InsertProfessor, type Notification, type InsertNotification } from "@shared/schema";
+import { type Project, type InsertProject, type WeeklySchedule, type InsertWeeklySchedule, type Professor, type InsertProfessor, type Notification, type InsertNotification, type User, type InsertUser, type Group, type InsertGroup, type GroupMember, type InsertGroupMember, type ProjectInterest, type InsertProjectInterest, type DeliveryCompletion, type InsertDeliveryCompletion } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -22,6 +22,35 @@ export interface IStorage {
   getNotifications(): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(id: string): Promise<Notification | undefined>;
+  
+  // Users and Authentication
+  getUsers(): Promise<User[]>;
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  authenticateUser(username: string, password: string): Promise<User | null>;
+  
+  // Groups
+  getGroups(): Promise<Group[]>;
+  getGroup(id: string): Promise<Group | undefined>;
+  getGroupsByProject(projectId: string): Promise<Group[]>;
+  createGroup(group: InsertGroup): Promise<Group>;
+  updateGroupStatus(id: string, status: "pending" | "approved" | "rejected"): Promise<Group | undefined>;
+  
+  // Group Members
+  getGroupMembers(groupId: string): Promise<GroupMember[]>;
+  addGroupMember(member: InsertGroupMember): Promise<GroupMember>;
+  removeGroupMember(groupId: string, userId: string): Promise<boolean>;
+  
+  // Project Interests
+  getProjectInterests(projectId: string): Promise<ProjectInterest[]>;
+  getUserInterests(userId: string): Promise<ProjectInterest[]>;
+  createProjectInterest(interest: InsertProjectInterest): Promise<ProjectInterest>;
+  
+  // Delivery Completions
+  getDeliveryCompletions(groupId: string): Promise<DeliveryCompletion[]>;
+  createDeliveryCompletion(completion: InsertDeliveryCompletion): Promise<DeliveryCompletion>;
+  isDeliveryCompleted(scheduleId: string, groupId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -29,16 +58,35 @@ export class MemStorage implements IStorage {
   private weeklySchedules: Map<string, WeeklySchedule>;
   private professors: Map<string, Professor>;
   private notifications: Map<string, Notification>;
+  private users: Map<string, User>;
+  private groups: Map<string, Group>;
+  private groupMembers: Map<string, GroupMember>;
+  private projectInterests: Map<string, ProjectInterest>;
+  private deliveryCompletions: Map<string, DeliveryCompletion>;
 
   constructor() {
     this.projects = new Map();
     this.weeklySchedules = new Map();
     this.professors = new Map();
     this.notifications = new Map();
+    this.users = new Map();
+    this.groups = new Map();
+    this.groupMembers = new Map();
+    this.projectInterests = new Map();
+    this.deliveryCompletions = new Map();
     this.initializeData();
   }
 
   private initializeData() {
+    // Initialize users - create the professor user
+    this.createUser({
+      username: "professor",
+      password: "4731v8",
+      name: "Professor Sistema",
+      type: "professor",
+      githubProfile: null
+    });
+
     // Initialize professors
     const professorsData = [
       {
@@ -231,9 +279,9 @@ export class MemStorage implements IStorage {
     const weeks = [
       {
         title: "Planejamento Inicial",
-        tasks: ["Escolha do tema do projeto", "Análise de requisitos funcionais", "Definição da arquitetura inicial", "Prototipação UI/UX no Figma"],
-        deliverable: "Protótipo navegável e documentação inicial",
-        evaluationCriteria: ["Clareza na definição do escopo", "Qualidade do protótipo", "Viabilidade técnica", "Documentação de requisitos"]
+        tasks: ["Escolha do tema do projeto", "Análise de requisitos funcionais", "Definição da arquitetura inicial", "Prototipação UI/UX no Figma (alta fidelidade)"],
+        deliverable: "Protótipo Figma de alta fidelidade e documentação inicial",
+        evaluationCriteria: ["Clareza na definição do escopo", "Qualidade do protótipo de alta fidelidade", "Viabilidade técnica", "Documentação de requisitos"]
       },
       {
         title: "Documentação Técnica",
@@ -414,6 +462,160 @@ export class MemStorage implements IStorage {
       this.notifications.set(id, notification);
     }
     return notification;
+  }
+
+  // Users and Authentication
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(),
+      username: insertUser.username || null,
+      password: insertUser.password || null,
+      githubProfile: insertUser.githubProfile || null
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async authenticateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.getUserByUsername(username);
+    if (user && user.password === password) {
+      return user;
+    }
+    return null;
+  }
+
+  // Groups
+  async getGroups(): Promise<Group[]> {
+    return Array.from(this.groups.values());
+  }
+
+  async getGroup(id: string): Promise<Group | undefined> {
+    return this.groups.get(id);
+  }
+
+  async getGroupsByProject(projectId: string): Promise<Group[]> {
+    return Array.from(this.groups.values())
+      .filter(group => group.projectId === projectId);
+  }
+
+  async createGroup(insertGroup: InsertGroup): Promise<Group> {
+    const id = randomUUID();
+    const group: Group = { 
+      ...insertGroup, 
+      id, 
+      createdAt: new Date(),
+      projectId: insertGroup.projectId || null,
+      leaderId: insertGroup.leaderId || null,
+      status: insertGroup.status || "pending"
+    };
+    this.groups.set(id, group);
+    return group;
+  }
+
+  async updateGroupStatus(id: string, status: "pending" | "approved" | "rejected"): Promise<Group | undefined> {
+    const group = this.groups.get(id);
+    if (group) {
+      group.status = status;
+      this.groups.set(id, group);
+    }
+    return group;
+  }
+
+  // Group Members
+  async getGroupMembers(groupId: string): Promise<GroupMember[]> {
+    return Array.from(this.groupMembers.values())
+      .filter(member => member.groupId === groupId);
+  }
+
+  async addGroupMember(member: InsertGroupMember): Promise<GroupMember> {
+    const id = randomUUID();
+    const groupMember: GroupMember = { 
+      ...member, 
+      id, 
+      joinedAt: new Date(),
+      groupId: member.groupId || null,
+      userId: member.userId || null
+    };
+    this.groupMembers.set(id, groupMember);
+    return groupMember;
+  }
+
+  async removeGroupMember(groupId: string, userId: string): Promise<boolean> {
+    const members = Array.from(this.groupMembers.entries());
+    const memberEntry = members.find(([id, member]) => 
+      member.groupId === groupId && member.userId === userId
+    );
+    
+    if (memberEntry) {
+      this.groupMembers.delete(memberEntry[0]);
+      return true;
+    }
+    return false;
+  }
+
+  // Project Interests
+  async getProjectInterests(projectId: string): Promise<ProjectInterest[]> {
+    return Array.from(this.projectInterests.values())
+      .filter(interest => interest.projectId === projectId);
+  }
+
+  async getUserInterests(userId: string): Promise<ProjectInterest[]> {
+    return Array.from(this.projectInterests.values())
+      .filter(interest => interest.userId === userId);
+  }
+
+  async createProjectInterest(insertInterest: InsertProjectInterest): Promise<ProjectInterest> {
+    const id = randomUUID();
+    const interest: ProjectInterest = { 
+      ...insertInterest, 
+      id, 
+      createdAt: new Date(),
+      userId: insertInterest.userId || null,
+      projectId: insertInterest.projectId || null,
+      message: insertInterest.message || null
+    };
+    this.projectInterests.set(id, interest);
+    return interest;
+  }
+
+  // Delivery Completions
+  async getDeliveryCompletions(groupId: string): Promise<DeliveryCompletion[]> {
+    return Array.from(this.deliveryCompletions.values())
+      .filter(completion => completion.groupId === groupId);
+  }
+
+  async createDeliveryCompletion(insertCompletion: InsertDeliveryCompletion): Promise<DeliveryCompletion> {
+    const id = randomUUID();
+    const completion: DeliveryCompletion = { 
+      ...insertCompletion, 
+      id, 
+      completedAt: new Date(),
+      scheduleId: insertCompletion.scheduleId || null,
+      groupId: insertCompletion.groupId || null,
+      notes: insertCompletion.notes || null
+    };
+    this.deliveryCompletions.set(id, completion);
+    return completion;
+  }
+
+  async isDeliveryCompleted(scheduleId: string, groupId: string): Promise<boolean> {
+    return Array.from(this.deliveryCompletions.values())
+      .some(completion => completion.scheduleId === scheduleId && completion.groupId === groupId);
   }
 }
 

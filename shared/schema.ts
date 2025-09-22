@@ -49,6 +49,48 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").unique(),
+  password: text("password"),
+  name: text("name").notNull(),
+  type: varchar("type", { enum: ["professor", "student"] }).notNull(),
+  githubProfile: text("github_profile"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const groups = pgTable("groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  projectId: varchar("project_id").references(() => projects.id),
+  leaderId: varchar("leader_id").references(() => users.id),
+  status: varchar("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const groupMembers = pgTable("group_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").references(() => groups.id),
+  userId: varchar("user_id").references(() => users.id),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const projectInterests = pgTable("project_interests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  projectId: varchar("project_id").references(() => projects.id),
+  message: text("message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const deliveryCompletions = pgTable("delivery_completions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  scheduleId: varchar("schedule_id").references(() => weeklySchedule.id),
+  groupId: varchar("group_id").references(() => groups.id),
+  completedAt: timestamp("completed_at").defaultNow(),
+  notes: text("notes"),
+});
+
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
@@ -67,6 +109,31 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGroupSchema = createInsertSchema(groups).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertProjectInterestSchema = createInsertSchema(projectInterests).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDeliveryCompletionSchema = createInsertSchema(deliveryCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type WeeklySchedule = typeof weeklySchedule.$inferSelect;
@@ -75,3 +142,13 @@ export type Professor = typeof professors.$inferSelect;
 export type InsertProfessor = z.infer<typeof insertProfessorSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Group = typeof groups.$inferSelect;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
+export type GroupMember = typeof groupMembers.$inferSelect;
+export type InsertGroupMember = z.infer<typeof insertGroupMemberSchema>;
+export type ProjectInterest = typeof projectInterests.$inferSelect;
+export type InsertProjectInterest = z.infer<typeof insertProjectInterestSchema>;
+export type DeliveryCompletion = typeof deliveryCompletions.$inferSelect;
+export type InsertDeliveryCompletion = z.infer<typeof insertDeliveryCompletionSchema>;
