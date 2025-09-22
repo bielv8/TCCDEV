@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,13 @@ interface ProjectInterestModalProps {
   children: React.ReactNode;
 }
 
+interface Group {
+  id: string;
+  name: string;
+  projectId: string;
+  status: "pending" | "approved" | "rejected";
+}
+
 export default function ProjectInterestModal({ projectId, projectTitle, children }: ProjectInterestModalProps) {
   const [open, setOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
@@ -29,6 +36,12 @@ export default function ProjectInterestModal({ projectId, projectTitle, children
   const { toast } = useToast();
   const auth = useAuth();
   const queryClient = useQueryClient();
+
+  // Query to get existing groups for this project
+  const { data: projectGroups = [] } = useQuery<Group[]>({
+    queryKey: ["/api/projects", projectId, "groups"],
+    enabled: open, // Only fetch when modal is open
+  });
 
   const createInterestMutation = useMutation({
     mutationFn: async (data: { userId: string; projectId: string; message: string }) => {
@@ -78,6 +91,7 @@ export default function ProjectInterestModal({ projectId, projectTitle, children
         description: `Grupo "${groupName}" foi criado e está aguardando aprovação do professor.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "groups"] });
       setOpen(false);
       setGroupName("");
     },
@@ -104,6 +118,29 @@ export default function ProjectInterestModal({ projectId, projectTitle, children
   const handleGroupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.user || !groupName.trim()) return;
+
+    // Check for existing groups for this project
+    const approvedGroup = projectGroups.find(group => group.status === "approved");
+    const pendingGroups = projectGroups.filter(group => group.status === "pending");
+
+    // If there's already an approved group, don't allow new groups
+    if (approvedGroup) {
+      toast({
+        title: "Tema não disponível",
+        description: "Este tema já foi confirmado pelo professor e não está mais disponível para seleção.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If there are pending groups, show conflict message but allow submission
+    if (pendingGroups.length > 0) {
+      toast({
+        title: "Conflito de tema",
+        description: "Alguém já solicitou esse tema. Seu professor vai decidir quem vai ficar com qual.",
+        variant: "default",
+      });
+    }
 
     createGroupMutation.mutate({
       name: groupName.trim(),

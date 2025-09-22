@@ -8,7 +8,6 @@ import Sidebar from "@/components/layout/sidebar";
 import Dashboard from "@/pages/dashboard";
 import ProjectDetail from "@/pages/project-detail";
 import Schedule from "@/pages/schedule";
-import Professors from "@/pages/professors";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
@@ -19,7 +18,6 @@ function AuthenticatedRouter() {
       <Route path="/" component={Dashboard} />
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/schedule" component={Schedule} />
-      <Route path="/professors" component={Professors} />
       <Route component={NotFound} />
     </Switch>
   );

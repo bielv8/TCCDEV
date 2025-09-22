@@ -57,15 +57,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all professors
-  app.get("/api/professors", async (req, res) => {
-    try {
-      const professors = await storage.getProfessors();
-      res.json(professors);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch professors" });
-    }
-  });
 
   // Get all notifications
   app.get("/api/notifications", async (req, res) => {
@@ -148,9 +139,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get groups for a specific project
   app.get("/api/projects/:projectId/groups", async (req, res) => {
     try {
       const groups = await storage.getGroupsByProject(req.params.projectId);
+      res.json(groups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch project groups" });
+    }
+  });
+
+  app.get("/api/projects/:id/groups", async (req, res) => {
+    try {
+      const groups = await storage.getGroupsByProject(req.params.id);
       res.json(groups);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch project groups" });

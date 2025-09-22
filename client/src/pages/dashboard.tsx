@@ -170,9 +170,13 @@ export default function Dashboard() {
                         <Badge variant="outline" data-testid={`project-theme-${project.id}`}>
                           Tema {project.theme}
                         </Badge>
-                        {assignedGroup && (
-                          <Badge variant="default" data-testid={`project-assigned-group-${project.id}`}>
-                            Grupo: {assignedGroup.name}
+                        {assignedGroup ? (
+                          <Badge variant="destructive" data-testid={`project-assigned-group-${project.id}`}>
+                            Tema Fixado - {assignedGroup.name}
+                          </Badge>
+                        ) : (
+                          <Badge variant="default" className="bg-green-100 text-green-700" data-testid={`project-available-${project.id}`}>
+                            Disponível
                           </Badge>
                         )}
                       </div>
