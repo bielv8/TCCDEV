@@ -9,9 +9,11 @@ import Dashboard from "@/pages/dashboard";
 import ProjectDetail from "@/pages/project-detail";
 import Schedule from "@/pages/schedule";
 import Professors from "@/pages/professors";
+import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 
-function Router() {
+function AuthenticatedRouter() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
@@ -23,21 +25,46 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const auth = useAuth();
+
+  if (auth.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-lg">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!auth.user) {
+    return <LoginPage />;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex h-screen pt-16">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <AuthenticatedRouter />
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen bg-background">
-          <Navbar />
-          <div className="flex h-screen pt-16">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">
-              <Router />
-            </main>
-          </div>
+      <AuthProvider>
+        <TooltipProvider>
+          <AppContent />
           <Toaster />
-        </div>
-      </TooltipProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
