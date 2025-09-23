@@ -4,8 +4,8 @@ import { useParams } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, CheckCircle, ArrowLeft } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Calendar, ArrowLeft, Code, Layers, Package, FileText } from "lucide-react";
 import { type Project, type WeeklySchedule } from "@shared/schema";
 import { projectThemes } from "@/data/projects";
 import { formatDate } from "@/lib/date-utils";
@@ -39,15 +39,9 @@ export default function MainPage() {
   };
 
   if (selectedTheme && selectedProject) {
-    // Show schedule for selected theme
-    const totalWeeks = schedule.length || 11;
-    const completedWeeks = schedule.filter(week => week.status === 'completed').length;
-    const currentWeekData = schedule.find(week => week.status === 'current');
-    const currentWeek = currentWeekData?.weekNumber || 1;
-    const progressPercentage = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
-
+    // Show complete theme details and schedule
     return (
-      <div className="min-h-screen p-6" data-testid="schedule-view">
+      <div className="min-h-screen p-6" data-testid="theme-details-view">
         {/* Header */}
         <div className="mb-8">
           <Button 
@@ -60,157 +54,207 @@ export default function MainPage() {
             Voltar aos Temas
           </Button>
           
-          <h1 className="text-3xl font-bold text-primary mb-2" data-testid="theme-title">
+          <h1 className="text-4xl font-bold text-primary mb-4" data-testid="theme-title">
             {selectedProject.title}
           </h1>
-          <p className="text-muted-foreground mb-4" data-testid="theme-description">
-            {selectedProject.description}
-          </p>
           <Badge variant="outline" className="mb-4" data-testid="theme-badge">
             Tema {selectedProject.theme}
           </Badge>
         </div>
 
-        {scheduleLoading ? (
-          <div className="animate-pulse space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-muted rounded"></div>
-              ))}
-            </div>
-            <div className="h-96 bg-muted rounded"></div>
-          </div>
-        ) : (
-          <>
-            {/* Progress Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card data-testid="progress-total-weeks">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total de Semanas</p>
-                      <p className="text-2xl font-bold text-primary">{totalWeeks}</p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-primary" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card data-testid="progress-current-week">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Semana Atual</p>
-                      <p className="text-2xl font-bold text-secondary">{currentWeek}</p>
-                    </div>
-                    <Clock className="w-8 h-8 text-secondary" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card data-testid="progress-completed-weeks">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Semanas Concluídas</p>
-                      <p className="text-2xl font-bold text-accent">{completedWeeks}</p>
-                    </div>
-                    <CheckCircle className="w-8 h-8 text-accent" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card data-testid="progress-percentage">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Progresso Geral</p>
-                      <p className="text-2xl font-bold text-primary">{progressPercentage}%</p>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-primary font-bold text-sm">{progressPercentage}%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Progress Bar */}
-            <Card className="mb-8" data-testid="progress-bar-card">
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Progresso do Projeto</span>
-                    <span>{progressPercentage}%</span>
-                  </div>
-                  <Progress value={progressPercentage} className="w-full" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Weekly Timeline */}
-            <Card data-testid="weekly-timeline-card">
+        {/* Project Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Description and Context */}
+          <div className="space-y-6">
+            <Card data-testid="project-description">
               <CardHeader>
-                <CardTitle>Cronograma Semanal</CardTitle>
-                <CardDescription>
-                  Cronograma detalhado para {selectedProject.title}
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Descrição do Projeto
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6" data-testid="weekly-timeline">
-                  {schedule.map((week) => {
-                    const status = week.status || 'pending';
-
-                    return (
-                      <div key={week.id} className="timeline-item pl-10" data-testid={`timeline-week-${week.weekNumber}`}>
-                        <div className="absolute left-3 w-4 h-4 rounded-full border-2 border-white shadow-md z-10"
-                             style={{
-                               backgroundColor: status === 'completed' ? 'hsl(158, 64%, 52%)' :
-                                              status === 'current' ? 'hsl(15, 90%, 60%)' :
-                                              'hsl(210, 40%, 96%)'
-                             }}>
-                        </div>
-                        
-                        <div className="bg-card rounded-lg border p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold" data-testid={`week-${week.weekNumber}-title`}>
-                              Semana {week.weekNumber} - {week.title}
-                            </h3>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm text-muted-foreground" data-testid={`week-${week.weekNumber}-dates`}>
-                                {formatDate(week.startDate)} - {formatDate(week.endDate)}
-                              </span>
-                              <Badge 
-                                className={`week-status ${status}`}
-                                data-testid={`week-${week.weekNumber}-status`}
-                              >
-                                {status === 'completed' ? 'Concluída' : 
-                                 status === 'current' ? 'Em Andamento' : 'Pendente'}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="mb-3">
-                            <h5 className="text-sm font-medium mb-1">Tarefas:</h5>
-                            <ul className="text-sm text-muted-foreground space-y-1" data-testid={`week-${week.weekNumber}-tasks`}>
-                              {(week.tasks as string[]).map((task, index) => (
-                                <li key={index}>• {task}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          
-                          <div className="bg-muted/50 px-3 py-2 rounded text-sm" data-testid={`week-${week.weekNumber}-deliverable`}>
-                            <strong>Entregável:</strong> {week.deliverable}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedProject.description}
+                </p>
               </CardContent>
             </Card>
-          </>
-        )}
+
+            <Card data-testid="project-context">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="w-5 h-5" />
+                  Contexto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedProject.context}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card data-testid="project-problem">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Problema a Resolver
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedProject.problem}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Technical Details */}
+          <div className="space-y-6">
+            <Card data-testid="project-architecture">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Code className="w-5 h-5" />
+                  Arquitetura
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(selectedProject.architecture) ? (
+                  <div className="space-y-2">
+                    {selectedProject.architecture.map((item, index) => (
+                      <Badge key={index} variant="secondary" className="mr-2 mb-2">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">{selectedProject.architecture}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card data-testid="project-technologies">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="w-5 h-5" />
+                  Tecnologias
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(selectedProject.technologies) ? (
+                  <div className="space-y-2">
+                    {selectedProject.technologies.map((tech, index) => (
+                      <Badge key={index} variant="outline" className="mr-2 mb-2">
+                        {tech}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">{selectedProject.technologies}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card data-testid="project-modules">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Módulos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(selectedProject.modules) ? (
+                  <ul className="space-y-1">
+                    {selectedProject.modules.map((module, index) => (
+                      <li key={index} className="text-sm text-muted-foreground">
+                        • {module}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">{selectedProject.modules}</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Deliverables */}
+        <Card className="mb-8" data-testid="project-deliverables">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Entregáveis do Projeto
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {Array.isArray(selectedProject.deliverables) ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedProject.deliverables.map((deliverable, index) => (
+                  <div key={index} className="bg-muted/50 px-4 py-3 rounded-lg">
+                    <p className="text-sm font-medium">{deliverable}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">{selectedProject.deliverables}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Separator className="mb-8" />
+
+        {/* Simplified Weekly Timeline */}
+        <Card data-testid="weekly-timeline-card">
+          <CardHeader>
+            <CardTitle>Cronograma Semanal</CardTitle>
+            <CardDescription>
+              Cronograma detalhado para {selectedProject.title}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {scheduleLoading ? (
+              <div className="animate-pulse space-y-4">
+                {[...Array(11)].map((_, i) => (
+                  <div key={i} className="h-24 bg-muted rounded"></div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-6" data-testid="weekly-timeline">
+                {schedule.map((week) => (
+                  <div key={week.id} className="timeline-item pl-10" data-testid={`timeline-week-${week.weekNumber}`}>
+                    <div className="absolute left-3 w-4 h-4 rounded-full border-2 border-white shadow-md z-10 bg-primary">
+                    </div>
+                    
+                    <div className="bg-card rounded-lg border p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold" data-testid={`week-${week.weekNumber}-title`}>
+                          Semana {week.weekNumber} - {week.title}
+                        </h3>
+                        <span className="text-sm text-muted-foreground" data-testid={`week-${week.weekNumber}-dates`}>
+                          {formatDate(week.startDate)} - {formatDate(week.endDate)}
+                        </span>
+                      </div>
+                      
+                      <div className="mb-3">
+                        <h5 className="text-sm font-medium mb-1">Tarefas:</h5>
+                        <ul className="text-sm text-muted-foreground space-y-1" data-testid={`week-${week.weekNumber}-tasks`}>
+                          {(week.tasks as string[]).map((task, index) => (
+                            <li key={index}>• {task}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-muted/50 px-3 py-2 rounded text-sm" data-testid={`week-${week.weekNumber}-deliverable`}>
+                        <strong>Entregável:</strong> {week.deliverable}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
