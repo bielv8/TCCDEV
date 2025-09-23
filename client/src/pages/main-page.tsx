@@ -121,14 +121,22 @@ export default function MainPage() {
               <CardContent>
                 {Array.isArray(selectedProject.architecture) ? (
                   <div className="space-y-2">
-                    {selectedProject.architecture.map((item, index) => (
+                    {(selectedProject.architecture as string[]).map((item, index) => (
                       <Badge key={index} variant="secondary" className="mr-2 mb-2">
                         {item}
                       </Badge>
                     ))}
                   </div>
+                ) : typeof selectedProject.architecture === 'object' && selectedProject.architecture !== null ? (
+                  <div className="space-y-2">
+                    {Object.entries(selectedProject.architecture as Record<string, any>).map(([key, value], index) => (
+                      <div key={index} className="text-sm">
+                        <span className="font-medium">{key}:</span> {Array.isArray(value) ? value.join(', ') : String(value)}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-muted-foreground">{selectedProject.architecture}</p>
+                  <p className="text-muted-foreground">{String(selectedProject.architecture)}</p>
                 )}
               </CardContent>
             </Card>
@@ -143,14 +151,22 @@ export default function MainPage() {
               <CardContent>
                 {Array.isArray(selectedProject.technologies) ? (
                   <div className="space-y-2">
-                    {selectedProject.technologies.map((tech, index) => (
+                    {(selectedProject.technologies as string[]).map((tech, index) => (
                       <Badge key={index} variant="outline" className="mr-2 mb-2">
                         {tech}
                       </Badge>
                     ))}
                   </div>
+                ) : typeof selectedProject.technologies === 'object' && selectedProject.technologies !== null ? (
+                  <div className="space-y-2">
+                    {Object.entries(selectedProject.technologies as Record<string, any>).map(([key, value], index) => (
+                      <div key={index} className="text-sm">
+                        <span className="font-medium">{key}:</span> {Array.isArray(value) ? value.join(', ') : String(value)}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-muted-foreground">{selectedProject.technologies}</p>
+                  <p className="text-muted-foreground">{String(selectedProject.technologies)}</p>
                 )}
               </CardContent>
             </Card>
@@ -165,14 +181,22 @@ export default function MainPage() {
               <CardContent>
                 {Array.isArray(selectedProject.modules) ? (
                   <ul className="space-y-1">
-                    {selectedProject.modules.map((module, index) => (
+                    {(selectedProject.modules as string[]).map((module, index) => (
                       <li key={index} className="text-sm text-muted-foreground">
                         • {module}
                       </li>
                     ))}
                   </ul>
+                ) : typeof selectedProject.modules === 'object' && selectedProject.modules !== null ? (
+                  <div className="space-y-2">
+                    {Object.entries(selectedProject.modules as Record<string, any>).map(([key, value], index) => (
+                      <div key={index} className="text-sm">
+                        <span className="font-medium">{key}:</span> {Array.isArray(value) ? value.join(', ') : String(value)}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-muted-foreground">{selectedProject.modules}</p>
+                  <p className="text-muted-foreground">{String(selectedProject.modules)}</p>
                 )}
               </CardContent>
             </Card>
@@ -190,14 +214,22 @@ export default function MainPage() {
           <CardContent>
             {Array.isArray(selectedProject.deliverables) ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedProject.deliverables.map((deliverable, index) => (
+                {(selectedProject.deliverables as string[]).map((deliverable, index) => (
                   <div key={index} className="bg-muted/50 px-4 py-3 rounded-lg">
                     <p className="text-sm font-medium">{deliverable}</p>
                   </div>
                 ))}
               </div>
+            ) : typeof selectedProject.deliverables === 'object' && selectedProject.deliverables !== null ? (
+              <div className="space-y-2">
+                {Object.entries(selectedProject.deliverables as Record<string, any>).map(([key, value], index) => (
+                  <div key={index} className="bg-muted/50 px-4 py-3 rounded-lg">
+                    <p className="text-sm font-medium">{key}: {Array.isArray(value) ? value.join(', ') : String(value)}</p>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <p className="text-muted-foreground">{selectedProject.deliverables}</p>
+              <p className="text-muted-foreground">{String(selectedProject.deliverables)}</p>
             )}
           </CardContent>
         </Card>
