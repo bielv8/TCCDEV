@@ -46,5 +46,17 @@ export const projectThemes = [
     title: "Gestão Inteligente",
     icon: "zap",
     description: "Sistema preditivo com ML para prevenção de evasão escolar"
+  },
+  {
+    id: 9,
+    title: "Marketplace Digital",
+    icon: "shopping-cart",
+    description: "Plataforma completa de e-commerce com sistema de pagamentos, vendas e gestão de produtos"
+  },
+  {
+    id: 10,
+    title: "Streaming de Conteúdo",
+    icon: "play-circle",
+    description: "Plataforma de streaming com upload de vídeos, sistema de assinaturas e dashboard analítico"
   }
 ];

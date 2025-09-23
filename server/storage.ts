@@ -231,6 +231,36 @@ export class MemStorage implements IStorage {
         technologies: ["django", "djangorestframework", "pandas", "scikit-learn", "celery", "redis", "matplotlib", "reportlab", "django-filter", "psycopg2"],
         modules: ["Gestão de Usuários e Perfis", "Cadastro Acadêmico Completo", "Dashboard Analítico", "Módulo Preditivo", "Alertas Automáticos", "API REST", "Relatórios Personalizados"],
         deliverables: ["Prototipação UI/UX", "Documentação Técnica e Funcional", "Projeto Django Funcional", "Apresentação Final"]
+      },
+      {
+        title: "Marketplace Digital Integrado",
+        description: "Plataforma completa de e-commerce com sistema de pagamentos integrado, gestão de vendas, dashboards analíticos e marketplace multi-vendor com recursos avançados.",
+        theme: 9,
+        context: "Pequenas e médias empresas precisam de uma solução completa para vender online, mas não têm recursos para desenvolver ou comprar plataformas caras de e-commerce, além de precisarem de um sistema que permita múltiplos vendedores.",
+        problem: "O desafio dos alunos será criar uma plataforma marketplace completa, onde vendedores possam cadastrar produtos, gerenciar vendas, processar pagamentos e acompanhar performance, enquanto compradores têm uma experiência de compra fluida e segura.",
+        architecture: {
+          backend: "Django + Django REST Framework + Django Channels + Celery + Redis",
+          database: "PostgreSQL + Redis",
+          frontend: "HTML, CSS, JavaScript + Bootstrap/Tailwind + Vue.js"
+        },
+        technologies: ["django", "djangorestframework", "django-channels", "celery", "redis", "stripe-python", "pillow", "django-storages", "boto3", "django-filter", "django-crispy-forms", "psycopg2"],
+        modules: ["Autenticação Multi-perfil", "Gestão de Produtos e Catálogo", "Sistema de Carrinho e Checkout", "Integração de Pagamentos", "Dashboard de Vendas", "Sistema de Avaliações", "Chat em Tempo Real", "Relatórios e Analytics", "API REST Completa"],
+        deliverables: ["Prototipação UI/UX", "Documentação Técnica e Funcional", "Projeto Django Funcional", "Apresentação Final"]
+      },
+      {
+        title: "Plataforma de Streaming de Conteúdo",
+        description: "Sistema completo de streaming com upload de vídeos, transcodificação, sistema de assinaturas, dashboards analíticos e recomendações personalizadas usando IA.",
+        theme: 10,
+        context: "Criadores de conteúdo, instrutores e empresas precisam de uma plataforma própria para hospedar e monetizar seus vídeos, sem depender de plataformas externas que cobram altas comissões e limitam customizações.",
+        problem: "O desafio dos alunos será desenvolver uma plataforma de streaming completa, permitindo upload e reproduzção de vídeos, sistema de assinaturas premium, dashboard analítico para criadores e algoritmo de recomendações, simulando uma Netflix/YouTube personalizada.",
+        architecture: {
+          backend: "Django + Django REST Framework + Django Channels + Celery + Redis + FFmpeg",
+          database: "PostgreSQL + Redis + AWS S3",
+          frontend: "HTML, CSS, JavaScript + Bootstrap/Tailwind + React.js"
+        },
+        technologies: ["django", "djangorestframework", "django-channels", "celery", "redis", "ffmpeg-python", "django-storages", "boto3", "pillow", "stripe-python", "django-filter", "scikit-learn", "pandas", "psycopg2"],
+        modules: ["Autenticação e Perfis", "Upload e Processamento de Vídeos", "Player de Vídeo Customizado", "Sistema de Assinaturas", "Dashboard de Criadores", "Sistema de Recomendações", "Chat e Comentários ao Vivo", "Analytics Avançados", "API REST e WebSocket"],
+        deliverables: ["Prototipação UI/UX", "Documentação Técnica e Funcional", "Projeto Django Funcional", "Apresentação Final"]
       }
     ];
 
